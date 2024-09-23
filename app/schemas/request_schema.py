@@ -1,9 +1,18 @@
 from pydantic import BaseModel
+from typing import Optional
 
 from app.schemas.client_schema import ClientSchema
+from app.schemas.advisor_schema import AdvisorSchema
+
+class AttachmentSchema(BaseModel):
+    filename: str
+    content: str
+    comment: Optional[str] = "Sin comentario"
+
+class RequestData(BaseModel):
+    attachments: Optional[list[AttachmentSchema]] = []
 
 class RequestSchema(BaseModel):
     client: ClientSchema
-    commercial_adviser_email: str
-    title: str
-    description: str
+    advisor: AdvisorSchema
+    data: RequestData
