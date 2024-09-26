@@ -9,6 +9,10 @@ router = APIRouter(prefix="/res")
 def hello_world():
     return RequestService.hello_world()
 
+@router.get("/request/{request_id}")
+def handle_request_reception(request_id: int):
+    return RequestService.get_request(request_id)
+
 @router.post("/request")
 def handle_request_reception(request_data: RequestSchema):
     print(request_data)
