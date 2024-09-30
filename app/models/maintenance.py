@@ -1,5 +1,10 @@
 from enum import Enum
 
+class MaintenanceInfoType(str, Enum):
+    DATETIME = "datetime",
+    DATE = "date",
+    TEXT = "text"
+
 class MaintenanceType(int, Enum):
     TYPE_1 = 1
     TYPE_2 = 2

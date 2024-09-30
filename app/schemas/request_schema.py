@@ -12,6 +12,7 @@ class AttachmentSchema(BaseModel):
 
 class RequestData(BaseModel):
     request_type: MaintenanceType
+    sub_request_type: MaintenanceType
     attachments: Optional[list[AttachmentSchema]] = []
 
 class RequestSchema(BaseModel):
