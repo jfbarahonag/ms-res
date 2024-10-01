@@ -1,18 +1,14 @@
 from pydantic import BaseModel
 from typing import Optional
 
-from app.models.client import CompanyDocumentType, UserDocumentType
-
-class UserSchema(BaseModel):
-    name: str
-    document_type: UserDocumentType
-    document_number: str
-    email: str
-    phone: Optional[str] = None
-    
+from app.models.client import UserDocumentType
 
 class ClientSchema(BaseModel):
-    name: str
-    document_type: CompanyDocumentType
-    document_number: str
-    user: UserSchema
+    companyName: str
+    NIT: str
+    obligationNumber: str
+    username: str
+    userDocumentType: UserDocumentType
+    userDocumentNumber: str
+    userEmail: str
+    phone: Optional[str]
