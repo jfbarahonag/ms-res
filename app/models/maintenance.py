@@ -6,7 +6,7 @@ class MaintenanceInfoType(str, Enum):
     TEXT = "text"
 
 class MaintenanceType(int, Enum):
-    TYPE_1 = 1
+    REVERSAL = 1
     TYPE_2 = 2
     TYPE_3 = 3
     TYPE_4 = 4

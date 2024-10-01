@@ -3,8 +3,10 @@ from app.config.variables import URL_MOTOR
 from app.schemas.maintenance_schema import MaintenanceSchema
 from app.models.maintenance import MaintenanceType
 
+from app.services.reversal_service import RequestReversalService
+
 redirect_request = {
-    MaintenanceType.TYPE_1: lambda x: f"1 Hola {x}",
+    MaintenanceType.REVERSAL: lambda x: RequestReversalService.handle_reversal_request(x),
     MaintenanceType.TYPE_2: lambda x: f"2 Hola {x}",
     MaintenanceType.TYPE_3: lambda x: f"3 Hola {x}",
     MaintenanceType.TYPE_4: lambda x: f"4 Hola {x}",
@@ -13,11 +15,9 @@ redirect_request = {
 }
 
 class RequestService:
-    
-    
     @staticmethod
     def handle_maintenance_request(maintenance: MaintenanceSchema):
-        return redirect_request[maintenance.type](maintenance.subType)
+        return redirect_request[maintenance.type](maintenance)
     
     @staticmethod
     def get_request(request_id: int):
