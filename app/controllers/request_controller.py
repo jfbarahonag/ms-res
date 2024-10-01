@@ -7,4 +7,4 @@ router = APIRouter(prefix="/res")
 
 @router.post("/request")
 def handle_request_reception(request_data: RequestMaintenanceSchema):
-    return RequestService.handle_maintenance_request(request_data.maintenance)
+    return RequestService.handle_maintenance_request(request_data)
