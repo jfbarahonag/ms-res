@@ -5,7 +5,7 @@ from app.schemas.client_schema import ClientSchema
 from app.schemas.advisor_schema import AdvisorSchema
 from app.schemas.maintenance_schema import MaintenanceSchema
 
-class RequestSchema(BaseModel):
+class RequestMaintenanceSchema(BaseModel):
     client: ClientSchema
     advisor: AdvisorSchema
     maintenance: MaintenanceSchema
