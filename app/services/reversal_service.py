@@ -35,7 +35,13 @@ def validate_type(type:str, value:str):
 class RequestReversalService:
     @staticmethod
     def handle_draft_reversal_request(data: RequestDraftMaintenanceSchema):
-        response = MotorService.create_draft(data.model_json_schema())
+        data_copy = data.model_dump().copy()
+        motor_payload = {}
+        
+        motor_payload["advisor"] = data_copy["advisor"]
+        motor_payload["client"] = data_copy["client"]
+        motor_payload["data"] = data_copy['maintenance']
+        response = MotorService.create_draft(motor_payload)
         return response
     
     @staticmethod
