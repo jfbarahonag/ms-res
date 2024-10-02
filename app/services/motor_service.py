@@ -15,3 +15,12 @@ class MotorService:
             raise HTTPException(status_code=response.status_code, detail=json.loads(response.content))
         
         return json.loads(response.content)
+    
+    @staticmethod
+    def get(id: int):
+        url = f"{URL_MOTOR}/reversals/{id}"
+        response = requests.get(url)
+        if response.status_code not in [200, 201]:
+            raise HTTPException(status_code=response.status_code, detail=json.loads(response.content))
+        
+        return json.loads(response.content)

@@ -89,4 +89,6 @@ class RequestReversalService:
             if  is_date_more_than_N_days(reversal.byClient.dateOfIncorrectPayment) and not vobo_received("vobo-riesgos"):
                 raise HTTPException(status_code=400, detail=f"{error_msg} el visto bueno de riesgos es obligatorio")
             
-                
+    @staticmethod
+    def get_reversal(reversal_id: int):
+        return MotorService.get(reversal_id)
