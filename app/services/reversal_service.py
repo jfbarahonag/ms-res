@@ -63,6 +63,19 @@ class RequestReversalService:
         output["byClient"] = {}
         output["type"] = maintenance.subType
         
+        valid_sub_types = ['Reversion por errores operativos','Reversion por errores del cliente']
+        if maintenance.subType not in valid_sub_types:
+            raise HTTPException(status_code=400, detail=f"'{maintenance.subType}' no es una reversion valida")  
+            
+        if maintenance.subType == "N/A":
+            raise HTTPException(status_code=400, detail="Debe seleccionarse un tipo de reversion")  
+        
+        reversal_fields = ["dateOfIncorrectPayment", "errors", "correctiveActions"]
+        is_valid_data = any(i for i in maintenance.info if i.key in reversal_fields)
+        
+        if not is_valid_data:
+            raise HTTPException(status_code=400, detail="No hay items validos")  
+        
         for item in maintenance.info:
             if item.key in ["dateOfIncorrectPayment"]:
                 if not validate_type(item.type, item.value):
@@ -92,3 +105,8 @@ class RequestReversalService:
     @staticmethod
     def get_reversal(reversal_id: int):
         return MotorService.get(reversal_id)
+    
+    @staticmethod
+    def handle_update_reversal(reversal_id: int, data: MaintenanceSchema):
+        reversal = RequestReversalService.parse_as_reversal(data)
+        return f"{reversal_id}"

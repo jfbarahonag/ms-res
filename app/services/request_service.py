@@ -1,4 +1,4 @@
-from app.schemas.request_schema import RequestMaintenanceSchema, RequestDraftMaintenanceSchema
+from app.schemas.request_schema import RequestMaintenanceSchema, RequestDraftMaintenanceSchema, MaintenanceSchema
 from app.models.maintenance import MaintenanceType
 
 from app.services.reversal_service import RequestReversalService
@@ -30,6 +30,15 @@ redirect_query = {
     MaintenanceType.TYPE_OTHER: lambda id: f"6 Hola {id}",
 }
 
+redirect_update = {
+    MaintenanceType.REVERSAL: lambda id, data: RequestReversalService.handle_update_reversal(id, data),
+    MaintenanceType.TYPE_2: lambda id: f"2 Hola {id}",
+    MaintenanceType.TYPE_3: lambda id: f"3 Hola {id}",
+    MaintenanceType.TYPE_4: lambda id: f"4 Hola {id}",
+    MaintenanceType.TYPE_5: lambda id: f"5 Hola {id}",
+    MaintenanceType.TYPE_OTHER: lambda id: f"6 Hola {id}",
+}
+
 class RequestService:
     @staticmethod
     def handle_draft_maintenance_request(request: RequestDraftMaintenanceSchema):
@@ -42,3 +51,7 @@ class RequestService:
     @staticmethod
     def get_maintenance_info(maintenance_id: int, type: MaintenanceType):
         return redirect_query[type](maintenance_id)
+    
+    @staticmethod
+    def handle_maintenance_update(maintenance_id: int, data: MaintenanceSchema):
+        return redirect_update[data.type](maintenance_id, data)

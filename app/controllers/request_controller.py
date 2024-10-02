@@ -1,9 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query, Path, Body
 
 from app.models.maintenance import MaintenanceType
 
 from app.services.request_service import RequestService
-from app.schemas.request_schema import RequestMaintenanceSchema, RequestDraftMaintenanceSchema
+from app.schemas.request_schema import RequestMaintenanceSchema, RequestDraftMaintenanceSchema, MaintenanceSchema
 
 router = APIRouter(prefix="/res")
 
@@ -18,3 +18,10 @@ def handle_draft_reception(request_data: RequestDraftMaintenanceSchema):
 @router.get("/request/{maintenance_id}")
 def get_draft_info(maintenance_id: int, type: MaintenanceType):
     return RequestService.get_maintenance_info(maintenance_id, type)
+
+@router.put("/request/draft/{maintenance_id}")
+def update_maintenance_info(
+    maintenance_id:int = Path(..., title="El ID del mantenimiento"), 
+    data:MaintenanceSchema = Body(...) 
+):
+    return RequestService.handle_maintenance_update(maintenance_id, data)
