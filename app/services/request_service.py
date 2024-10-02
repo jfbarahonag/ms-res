@@ -1,5 +1,3 @@
-from app.config.variables import URL_MOTOR
-
 from app.schemas.request_schema import RequestMaintenanceSchema, RequestDraftMaintenanceSchema
 from app.models.maintenance import MaintenanceType
 
