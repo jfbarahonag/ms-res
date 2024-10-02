@@ -1,13 +1,13 @@
+from datetime import datetime, timedelta
 from fastapi import HTTPException
-from typing import Any
 
-from app.schemas.request_schema import RequestMaintenanceSchema 
+from app.schemas.request_schema import RequestMaintenanceSchema, RequestDraftMaintenanceSchema
 from app.schemas.maintenance_schema import MaintenanceSchema, AttachmentsSchema
 from app.schemas.reversal_schema import ReversalDataSchema
 
 from app.models.reversal import ReversalType
 
-from datetime import datetime, timedelta
+from app.services.motor_service import MotorService
 
 def is_valid_date(date_str):
     try:
@@ -34,15 +34,22 @@ def validate_type(type:str, value:str):
 
 class RequestReversalService:
     @staticmethod
+    def handle_draft_reversal_request(data: RequestDraftMaintenanceSchema):
+        response = MotorService.create_draft(data.model_json_schema())
+        return response
+    
+    @staticmethod
     def handle_reversal_request(data: RequestMaintenanceSchema):
         if data.maintenance.subType not in [ReversalType.porErroresCliente, ReversalType.porErroresOperativos]:
             raise HTTPException(status_code=400, detail=f"Tipo de reversion '{data.maintenance.subType}' invalido para reversiones")
         
         reversal = RequestReversalService.parse_as_reversal(data.maintenance)
         
-        RequestReversalService.validate_attachments(reversal, data.maintenance.attachments)
+        RequestReversalService.validate_mandatory_attachments(reversal, data.maintenance.attachments)
         
-        return reversal
+        response = MotorService.create_draft(reversal.model_json_schema())
+        
+        return response
     
     @staticmethod
     def parse_as_reversal(maintenance: MaintenanceSchema) -> ReversalDataSchema:
@@ -64,7 +71,7 @@ class RequestReversalService:
         return ReversalDataSchema(**output)
     
     @staticmethod
-    def validate_attachments(reversal: ReversalDataSchema, attachments: list[AttachmentsSchema]) -> ReversalDataSchema:
+    def validate_mandatory_attachments(reversal: ReversalDataSchema, attachments: list[AttachmentsSchema]) -> ReversalDataSchema:
         error_msg = f"Para {reversal.type.value}"
         vobo_received = lambda pattern: any(pattern in attach.filename for attach in attachments)
         if reversal.type == ReversalType.porErroresOperativos:

@@ -9,8 +9,10 @@ class MaintenanceInfoSchema(BaseModel):
     value: str
     type: MaintenanceInfoType
 
-class MaintenanceSchema(BaseModel):
+class DraftMaintenanceSchema(BaseModel):
     type: MaintenanceType
+
+class MaintenanceSchema(DraftMaintenanceSchema):
     subType: str
     attachments: Optional[list[AttachmentsSchema]] = None
     info: list[MaintenanceInfoSchema]
