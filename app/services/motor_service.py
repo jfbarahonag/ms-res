@@ -14,4 +14,4 @@ class MotorService:
         if response.status_code not in [200, 201]:
             raise HTTPException(status_code=response.status_code, detail=json.loads(response.content))
         
-        return response.content.decode()
+        return json.loads(response.content)

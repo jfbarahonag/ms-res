@@ -40,7 +40,6 @@ class RequestReversalService:
         
         motor_payload["advisor"] = data_copy["advisor"]
         motor_payload["client"] = data_copy["client"]
-        motor_payload["data"] = data_copy['maintenance']
         response = MotorService.create_draft(motor_payload)
         return response
     
