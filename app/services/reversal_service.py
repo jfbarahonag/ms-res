@@ -8,6 +8,7 @@ from app.schemas.reversal_schema import ReversalDataSchema
 from app.models.reversal import ReversalType
 
 from app.services.motor_service import MotorService
+from app.services.attachments_service import AttachmentsService
 
 def is_valid_date(date_str):
     try:
@@ -23,7 +24,6 @@ def is_date_more_than_N_days(date_str, N=30):
     limit_date = today - timedelta(days=N)
 
     return input_date < limit_date
-
 
 def validate_type(type:str, value:str):
     if type not in ['date', 'text']:
@@ -107,6 +107,34 @@ class RequestReversalService:
         return MotorService.get(reversal_id)
     
     @staticmethod
+    def send_files(reversal_id:int, file_paths: list):
+        try:
+            
+            # Preparar los archivos para enviarlos como multipart/form-data
+            files, files_opened = AttachmentsService.filepaths_to_multipart(file_paths)
+            response = MotorService.attach_files(reversal_id, files)
+            AttachmentsService.close_open_files(files_opened)
+            
+            return response
+        
+        except Exception as e:
+            print(f"Error al enviar los archivos: {str(e)}")
+            raise e
+        
+        finally:
+            # Eliminar los archivos después de intentar enviarlos, exitoso o no
+            AttachmentsService.delete_files(file_paths)
+
+    @staticmethod
     def handle_update_reversal(reversal_id: int, data: MaintenanceSchema):
+        
         reversal = RequestReversalService.parse_as_reversal(data)
-        return f"{reversal_id}"
+        
+        RequestReversalService.validate_mandatory_attachments(reversal, data.attachments)
+        
+        file_paths = []
+        for attachment in data.attachments:
+            file_path = AttachmentsService.b64_to_file(attachment.content, attachment.filename)
+            file_paths.append(file_path)
+        
+        return RequestReversalService.send_files(reversal_id, file_paths)

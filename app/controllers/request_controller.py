@@ -20,8 +20,5 @@ def get_draft_info(maintenance_id: int, type: MaintenanceType):
     return RequestService.get_maintenance_info(maintenance_id, type)
 
 @router.put("/request/draft/{maintenance_id}")
-def update_maintenance_info(
-    maintenance_id:int = Path(..., title="El ID del mantenimiento"), 
-    data:MaintenanceSchema = Body(...) 
-):
+def update_maintenance_info(maintenance_id:int, data:MaintenanceSchema):
     return RequestService.handle_maintenance_update(maintenance_id, data)
