@@ -89,18 +89,22 @@ class RequestReversalService:
         return ReversalDataSchema(**output)
     
     @staticmethod
+    def validate_mandatory_fields(reversal: ReversalDataSchema):
+        if reversal.type == ReversalType.porErroresCliente and not is_valid_date(reversal.byClient.dateOfIncorrectPayment):
+            raise HTTPException(400, detail=f"'{reversal.byClient.dateOfIncorrectPayment}' no es una fecha valida y es obligatoria")
+        elif reversal.type == ReversalType.porErroresOperativos and (not reversal.byOperational.errors or not reversal.byOperational.correctiveActions):
+            raise HTTPException(400, detail=f"'Los errores y las acciones correctivas son obligatorias")
+
+    @staticmethod
     def validate_mandatory_attachments(reversal: ReversalDataSchema, attachments: list[AttachmentsSchema]) -> ReversalDataSchema:
         error_msg = f"Para {reversal.type.value}"
         vobo_received = lambda pattern: any(pattern in attach.filename for attach in attachments)
-        if reversal.type == ReversalType.porErroresOperativos:
-            if not vobo_received("vobo-comercial"):
-                raise HTTPException(status_code=400, detail=f"{error_msg} el visto bueno de instancia comercial o jefe de area es obligatorio")
-        elif reversal.type == ReversalType.porErroresCliente:
-            if not vobo_received("vobo-gte-cuenta"):
-                raise HTTPException(status_code=400, detail=f"{error_msg} el visto bueno del gerente de cuenta es obligatorio")
-            
-            if  is_date_more_than_N_days(reversal.byClient.dateOfIncorrectPayment) and not vobo_received("vobo-riesgos"):
-                raise HTTPException(status_code=400, detail=f"{error_msg} el visto bueno de riesgos es obligatorio")
+        if reversal.type == ReversalType.porErroresOperativos and not vobo_received("vobo-comercial"):
+            raise HTTPException(status_code=400, detail=f"{error_msg} el visto bueno de instancia comercial o jefe de area es obligatorio")
+        elif reversal.type == ReversalType.porErroresCliente and not vobo_received("vobo-gte-cuenta"):
+            raise HTTPException(status_code=400, detail=f"{error_msg} el visto bueno del gerente de cuenta es obligatorio")   
+        elif  reversal.type == ReversalType.porErroresCliente and is_date_more_than_N_days(reversal.byClient.dateOfIncorrectPayment) and not vobo_received("vobo-riesgos"):
+            raise HTTPException(status_code=400, detail=f"{error_msg} el visto bueno de riesgos es obligatorio")
             
     @staticmethod
     def get_reversal(reversal_id: int):
@@ -130,11 +134,31 @@ class RequestReversalService:
         
         reversal = RequestReversalService.parse_as_reversal(data)
         
+        RequestReversalService.validate_mandatory_fields(reversal)
         RequestReversalService.validate_mandatory_attachments(reversal, data.attachments)
+        
+        data_copy = reversal.model_dump().copy()
+        motor_payload = {}
+        
+        motor_payload["type"] = data_copy["type"]
+        if reversal.type == ReversalType.porErroresCliente:
+            motor_payload["byClient"] = data_copy["byClient"]
+        elif reversal.type == ReversalType.porErroresOperativos:
+            motor_payload["byOperational"] = data_copy["byOperational"]
+        
+        MotorService.update_draft(reversal_id, motor_payload)
         
         file_paths = []
         for attachment in data.attachments:
-            file_path = AttachmentsService.b64_to_file(attachment.content, attachment.filename)
-            file_paths.append(file_path)
+            if reversal.type == ReversalType.porErroresOperativos and "vobo-comercial" in attachment.filename:
+                file_path = AttachmentsService.b64_to_file(attachment.content, attachment.filename)
+                file_paths.append(file_path)
+            elif reversal.type == ReversalType.porErroresCliente and "vobo-gte-cuenta" in attachment.filename:
+                file_path = AttachmentsService.b64_to_file(attachment.content, attachment.filename)
+                file_paths.append(file_path)
+            elif  reversal.type == ReversalType.porErroresCliente and is_date_more_than_N_days(reversal.byClient.dateOfIncorrectPayment) and "vobo-riesgos" in attachment.filename:
+                file_path = AttachmentsService.b64_to_file(attachment.content, attachment.filename)
+                file_paths.append(file_path)
         
         return RequestReversalService.send_files(reversal_id, file_paths)
+        return MotorService.commit_request(reversal_id) 

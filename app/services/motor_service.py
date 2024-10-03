@@ -17,6 +17,16 @@ class MotorService:
         return json.loads(response.content)
     
     @staticmethod
+    def update_draft(id:int, draft_data: Any):
+        url = f"{URL_MOTOR}/reversals/{id}"
+        response = requests.put(url, json=draft_data)
+        
+        if response.status_code not in [200, 201]:
+            raise HTTPException(status_code=response.status_code, detail=json.loads(response.content))
+        
+        return json.loads(response.content)
+    
+    @staticmethod
     def get(id: int):
         url = f"{URL_MOTOR}/reversals/{id}"
         response = requests.get(url)
