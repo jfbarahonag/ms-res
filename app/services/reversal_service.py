@@ -99,8 +99,12 @@ class RequestReversalService:
     def validate_mandatory_attachments(reversal: ReversalDataSchema, attachments: list[AttachmentsSchema]) -> ReversalDataSchema:
         error_msg = f"Para {reversal.type.value}"
         vobo_received = lambda pattern: any(pattern in attach.filename for attach in attachments)
-        if reversal.type == ReversalType.porErroresOperativos and not vobo_received("vobo-comercial"):
+        if reversal.type == ReversalType.porErroresOperativos and not vobo_received("evidencia-error"):
+            raise HTTPException(status_code=400, detail=f"{error_msg} la evidencia del error es obligatoria")
+        elif reversal.type == ReversalType.porErroresOperativos and not vobo_received("vobo-comercial"):
             raise HTTPException(status_code=400, detail=f"{error_msg} el visto bueno de instancia comercial o jefe de area es obligatorio")
+        elif reversal.type == ReversalType.porErroresCliente and not vobo_received("carta-cliente"):
+            raise HTTPException(status_code=400, detail=f"{error_msg} la carta del cliente es obligatoria")   
         elif reversal.type == ReversalType.porErroresCliente and not vobo_received("vobo-gte-cuenta"):
             raise HTTPException(status_code=400, detail=f"{error_msg} el visto bueno del gerente de cuenta es obligatorio")   
         elif  reversal.type == ReversalType.porErroresCliente and is_date_more_than_n_days(reversal.byClient.dateOfIncorrectPayment) and not vobo_received("vobo-riesgos"):
