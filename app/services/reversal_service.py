@@ -158,8 +158,10 @@ class RequestReversalService:
             for attachment in data.attachments
             if (
             (reversal.type == ReversalType.porErroresOperativos and "vobo-comercial" in attachment.filename) or
+            (reversal.type == ReversalType.porErroresOperativos and "evidencia-error" in attachment.filename) or
+            (reversal.type == ReversalType.porErroresCliente and "carta-cliente" in attachment.filename) or
             (reversal.type == ReversalType.porErroresCliente and "vobo-gte-cuenta" in attachment.filename) or
-            (is_date_more_than_n_days(reversal.byClient.dateOfIncorrectPayment) and "vobo-riesgos" in attachment.filename)
+            (reversal.type == ReversalType.porErroresCliente and is_date_more_than_n_days(reversal.byClient.dateOfIncorrectPayment) and "vobo-riesgos" in attachment.filename)
             )
         ]
         
