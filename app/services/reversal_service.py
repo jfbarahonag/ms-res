@@ -40,8 +40,17 @@ class RequestReversalService:
         
         motor_payload["advisor"] = data_copy["advisor"]
         motor_payload["client"] = data_copy["client"]
-        response = MotorService.create_draft(motor_payload)
-        return response
+        
+        RequestReversalService.validate_draft_mandatory_attachments(data.maintenance.attachments)
+        
+        draft = MotorService.create_draft(motor_payload)
+        
+        file_paths = [
+            AttachmentsService.b64_to_file(attachment.content, attachment.filename)
+            for attachment in data.maintenance.attachments
+        ]
+        
+        return RequestReversalService.send_files(draft["data"]["id"], file_paths)
     
     @staticmethod
     def handle_reversal_request(data: RequestMaintenanceSchema):
@@ -95,6 +104,15 @@ class RequestReversalService:
         elif reversal.type == ReversalType.porErroresOperativos and (not reversal.byOperational.errors or not reversal.byOperational.correctiveActions):
             raise HTTPException(400, detail="Los errores y las acciones correctivas son obligatorias")
 
+    @staticmethod
+    def validate_draft_mandatory_attachments(attachments: list[AttachmentsSchema]) -> ReversalDataSchema:
+        if attachments is None or len(attachments) == 0:
+            raise HTTPException(status_code=400, detail="Para crear el borrador los datos del cliente son obligatoria")
+            
+        file_received = any("datos-cliente" in attach.filename for attach in attachments)
+        if not file_received:
+            raise HTTPException(status_code=400, detail="Para crear el borrador los datos del cliente son obligatoria")
+    
     @staticmethod
     def validate_mandatory_attachments(reversal: ReversalDataSchema, attachments: list[AttachmentsSchema]) -> ReversalDataSchema:
         error_msg = f"Para {reversal.type.value}"

@@ -12,6 +12,7 @@ class MaintenanceInfoSchema(BaseModel):
 
 class DraftMaintenanceSchema(BaseModel):
     type: MaintenanceType
+    attachments: Optional[list[AttachmentsSchema]] = None
 
 class MaintenanceSchema(DraftMaintenanceSchema):
     subType: Optional[ReversalType] = "N/A" # Lista de subtipos
